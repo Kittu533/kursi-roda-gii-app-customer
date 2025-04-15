@@ -5,5 +5,5 @@
   </div>
 </template>
 <script setup lang="ts">
-import Notification from "@/components/ui/notification.vue";
+import Notification from "@/components/notification.vue";
 </script>
