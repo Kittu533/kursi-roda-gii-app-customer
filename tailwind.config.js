@@ -1,7 +1,16 @@
-/** @type {import('tailwindcss').Config} */
+import defaultTheme from 'tailwindcss/defaultTheme'
+import colors from 'tailwindcss/colors'
+
 export default {
     darkMode: ["class"],
-    content: [],
+    content: [
+    "./components/**/*.{js,vue,ts}",
+    "./layouts/**/*.vue",
+    "./pages/**/*.vue",
+    "./plugins/**/*.{js,ts}",
+    "./app.vue",
+    "./error.vue"
+  ],
   theme: {
   	extend: {
   		borderRadius: {
@@ -53,6 +62,9 @@ export default {
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
+	require("tailwindcss-animate"),	
+  ],
 }
-

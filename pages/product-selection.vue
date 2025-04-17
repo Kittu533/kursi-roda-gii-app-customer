@@ -286,13 +286,6 @@ interface Product {
   description?: string;
 }
 
-definePageMeta({
-  title: "User Home",
-  layout: "users",
-  meta: {
-    auth: true,
-  },
-});
 
 export default defineComponent({
   setup() {
@@ -434,7 +427,7 @@ export default defineComponent({
         return;
       } else {
         // Navigate to transaction detail page
-        navigateTo("/user/transaction/detail-transaction-reguler");
+        navigateTo("transaction/confirmation-transaction");
       }
     },
   },

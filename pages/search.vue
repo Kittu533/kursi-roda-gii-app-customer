@@ -91,8 +91,6 @@
       </div>
       <div v-else class="p-4 text-center text-gray-500">No locations found</div>
     </div>
-
-    <!-- Bottom Navigation -->
   </div>
 </template>
 
@@ -163,7 +161,7 @@ const selectLocation = (location) => {
 
   // Best practice routing dengan route name dan params
   router.push({
-    name: "user-date-selection", // Menggunakan named route
+    name: "date-selection", // Menggunakan named route
     params: {
       // Jika perlu menyimpan di path params
     },
@@ -180,7 +178,6 @@ const router = useRouter();
 onMounted(() => {
   definePageMeta({
     title: "Search Location",
-    layout: "users",
   });
 });
 </script>

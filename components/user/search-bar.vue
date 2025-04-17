@@ -54,7 +54,7 @@ const clearSearch = () => {
 const navigateToSearch = () => {
   if (searchQuery.value.trim()) {
     router.push({
-      path: '/user/search',
+      path: 'search',
       query: { q: searchQuery.value }
     });
   }
