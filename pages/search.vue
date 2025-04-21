@@ -25,9 +25,11 @@
           <NuxtIcon name="mdi:map-marker" class="text-gray-500 h-5 w-5" />
         </div>
         <div>
-          <p class="text-[14px] font-[400px]">{{ selectedLocation.name }}</p>
+          <p class="text-[14px] font-[400px]">
+            {{ selectedLocation?.name || "Select Location" }}
+          </p>
           <p class="text-[12px] font-[400px] text-[#FF5F00]">
-            {{ selectedLocation.address }}
+            {{ selectedLocation?.address || "No address selected" }}
           </p>
         </div>
       </div>
@@ -97,51 +99,64 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 
+interface Coordinates {
+  lat: number;
+  lng: number;
+}
+
+interface RecentLocation {
+  id: string;
+  name: string;
+  address: string;
+  coordinates: Coordinates;
+  lastUsed: number;
+  timestamp: number;
+  distance?: number; // Added for compatibility with the locations list
+}
+
 const searchQuery = ref("");
+const selectedLocation = ref<RecentLocation | null>(null);
+const router = useRouter();
 
-const selectedLocation = ref({
-  id: "1",
-  name: "Agen A",
-  address: "Jl. Ibrahim Al-Khalil No. 12, Al-Haram, Makkah, Arab Saudi",
-});
+// Function to get the most recent location from localStorage
+const getMostRecentLocation = (): RecentLocation | null => {
+  try {
+    const recentLocations = localStorage.getItem("recentLocations");
+    if (!recentLocations) return null;
+    
+    const locations: RecentLocation[] = JSON.parse(recentLocations);
+    if (locations.length === 0) return null;
+    
+    // Sort by lastUsed timestamp in descending order
+    locations.sort((a, b) => b.lastUsed - a.lastUsed);
+    return locations[0];
+  } catch (error) {
+    console.error("Error reading recent locations:", error);
+    return null;
+  }
+};
 
-const locations = ref([
+// Sample locations data with distance
+const locations = ref<RecentLocation[]>([
   {
     id: "1",
     name: "Agen A",
     address: "Jl. Ibrahim No. 12, Al-Haram, Makkah, Arab Saudi",
     distance: 10,
+    coordinates: { lat: 0, lng: 0 },
+    lastUsed: Date.now(),
+    timestamp: Date.now(),
   },
   {
     id: "2",
-    name: "Agen A",
+    name: "Agen B",
     address: "Jl. Ibrahim No. 12, Al-Haram, Makkah, Arab Saudi",
     distance: 10,
+    coordinates: { lat: 0, lng: 0 },
+    lastUsed: Date.now(),
+    timestamp: Date.now(),
   },
-  {
-    id: "3",
-    name: "Agen A",
-    address: "Jl. Ibrahim No. 12, Al-Haram, Makkah, Arab Saudi",
-    distance: 10,
-  },
-  {
-    id: "4",
-    name: "Agen A",
-    address: "Jl. Ibrahim No. 12, Al-Haram, Makkah, Arab Saudi",
-    distance: 10,
-  },
-  {
-    id: "5",
-    name: "Agen A",
-    address: "Jl. Ibrahim No. 12, Al-Haram, Makkah, Arab Saudi",
-    distance: 10,
-  },
-  {
-    id: "6",
-    name: "Agen A",
-    address: "Jl. Ibrahim No. 12, Al-Haram, Makkah, Arab Saudi",
-    distance: 10,
-  },
+  // Add more locations as needed
 ]);
 
 const filteredLocations = computed(() => {
@@ -155,29 +170,63 @@ const filteredLocations = computed(() => {
   );
 });
 
-const selectLocation = (location) => {
+const selectLocation = (location: RecentLocation) => {
   console.log("Selected location:", location);
   selectedLocation.value = location;
 
-  // Best practice routing dengan route name dan params
+  // Update lastUsed timestamp
+  location.lastUsed = Date.now();
+
+  // Update in localStorage
+  try {
+    const recentLocations = localStorage.getItem("recentLocations");
+    let locations: RecentLocation[] = recentLocations
+      ? JSON.parse(recentLocations)
+      : [];
+
+    // Update or add the location
+    const index = locations.findIndex((loc) => loc.id === location.id);
+    if (index !== -1) {
+      locations[index] = location;
+    } else {
+      locations.push(location);
+    }
+
+    localStorage.setItem("recentLocations", JSON.stringify(locations));
+  } catch (error) {
+    console.error("Error updating recent locations:", error);
+  }
+
   router.push({
-    name: "date-selection", // Menggunakan named route
-    params: {
-      // Jika perlu menyimpan di path params
-    },
+    name: "date-selection",
     query: {
       locationId: location.id,
       locationName: encodeURIComponent(location.name),
-      from: "search", // Untuk tracking sumber navigasi
+      from: "search",
     },
   });
 };
 
-const router = useRouter();
-
 onMounted(() => {
+  // Set page meta
   definePageMeta({
     title: "Search Location",
   });
+
+  // Load most recent location
+  const mostRecentLocation = getMostRecentLocation();
+  if (mostRecentLocation) {
+    selectedLocation.value = mostRecentLocation;
+  } else {
+    // Fallback default location if no recent locations exist
+    selectedLocation.value = {
+      id: "default",
+      name: "Default Location",
+      address: "Please select a location",
+      coordinates: { lat: 0, lng: 0 },
+      lastUsed: Date.now(),
+      timestamp: Date.now(),
+    };
+  }
 });
 </script>

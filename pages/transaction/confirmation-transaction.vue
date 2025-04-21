@@ -1,14 +1,16 @@
 <template>
   <div class="flex flex-col min-h-screen bg-gray-50">
     <!-- Header -->
-    <div class="sticky top-0 z-10 bg-white p-4 flex items-center">
+    <div
+      class="sticky top-0 z-10 bg-white border-b border-gray-200 p-4 flex items-center"
+    >
       <button @click="$router.back()" class="mr-3">
         <NuxtIcon name="mdi:chevron-left" class="w-6 h-6" />
       </button>
       <h1 class="text-lg font-medium">Konfirmasi Pesanan</h1>
     </div>
 
-    <div class="flex-1 pb-24">
+    <div class="flex-1 pt-6">
       <!-- Address Section -->
       <div class="bg-white p-4 mb-2 rounded-lg border-2 border-gray-200">
         <div class="flex items-start">
@@ -16,7 +18,7 @@
             <NuxtIcon name="mdi:map-marker" class="w-5 h-5 text-orange-500" />
           </div>
           <div>
-            <p class="text-sm font-medium">Alamat</p>
+            <p class="text-sm">Alamat</p>
             <p class="text-xs text-orange-500">
               MAKKAH TOWER, Al Haram, Makkah, Arab Saudi...
             </p>
@@ -26,9 +28,11 @@
 
       <!-- Delivery Options -->
       <div class="bg-white p-4 mb-2 rounded-lg border-2 border-gray-200">
-        <div class="flex items-start justify-between mb-4">
+        <div class="flex items-start justify-between mb-4 items-center">
           <div class="flex items-center">
-            <div class="bg-gray-100 rounded-full p-2 mr-3 flex-shrink-0">
+            <div
+              class="bg-white border-orange-400 border rounded-full p-2 mr-3 flex-shrink-0 w-9 h-9 flex items-center justify-center"
+            >
               <NuxtIcon
                 name="mdi:truck-delivery-outline"
                 class="w-5 h-5 text-gray-500"
@@ -41,21 +45,33 @@
 
         <!-- Delivery Methods -->
         <div class="space-y-2">
-          <div class="flex items-center justify-between p-3 border rounded-lg">
-            <div>
-              <p class="text-sm">Pesan - Antar</p>
-              <p class="text-xs text-gray-500">± 20 menit</p>
-            </div>
-            <p class="text-sm">Rp13.000</p>
-          </div>
-
           <div
-            class="flex items-center justify-between p-3 border border-orange-300 rounded-lg bg-orange-50"
+            class="flex items-center justify-between p-3 border rounded-lg cursor-pointer"
+            :class="{ 'border-orange-400': selectedDelivery === 'delivery', 'border-gray-200': selectedDelivery !== 'delivery' }"
+            @click="selectedDelivery = 'delivery'"
           >
             <div>
-              <p class="text-sm">Pesan - Ambil</p>
+              <p class="text-sm" :class="{ 'text-orange-500': selectedDelivery === 'delivery' }">
+          Pesan - Antar < 20 Menit
+              </p>
             </div>
-            <p class="text-sm text-orange-500 font-medium">Gratis</p>
+            <p class="text-sm font-medium" :class="{ 'text-orange-500': selectedDelivery === 'delivery' }">
+              Rp13.000
+            </p>
+          </div>
+          <div
+            class="flex items-center justify-between p-3 border rounded-lg cursor-pointer"
+            :class="{ 'border-orange-400': selectedDelivery === 'pickup', 'border-gray-200': selectedDelivery !== 'pickup' }"
+            @click="selectedDelivery = 'pickup'"
+          >
+            <div>
+              <p class="text-sm" :class="{ 'text-orange-500': selectedDelivery === 'pickup' }">
+          Pesan - Ambil
+              </p>
+            </div>
+            <p class="text-sm font-medium" :class="{ 'text-orange-500': selectedDelivery === 'pickup' }">
+              Gratis
+            </p>
           </div>
         </div>
       </div>
@@ -102,70 +118,6 @@
                   class="mr-2 h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
                 />
                 <label for="guide1" class="text-sm">Guide</label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Item 2 -->
-          <div class="flex items-start border-b pb-4">
-            <div
-              class="w-16 h-16 bg-gray-200 rounded-md mr-3 flex-shrink-0 overflow-hidden"
-            >
-              <img
-                src="/public/kursi-roda.webp"
-                alt="Wheelchair"
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <div class="flex-1">
-              <div class="flex justify-between">
-                <p class="text-sm font-medium">Kursi Roda Breezy Basix®</p>
-                <div
-                  class="bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded"
-                >
-                  1
-                </div>
-              </div>
-              <p class="text-sm text-orange-500">Rp130.000/hari</p>
-              <div class="flex items-center mt-2">
-                <input
-                  type="checkbox"
-                  id="guide2"
-                  class="mr-2 h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
-                />
-                <label for="guide2" class="text-sm">Guide</label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Item 3 -->
-          <div class="flex items-start">
-            <div
-              class="w-16 h-16 bg-gray-200 rounded-md mr-3 flex-shrink-0 overflow-hidden"
-            >
-              <img
-                src="/public/kursi-roda.webp"
-                alt="Wheelchair"
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <div class="flex-1">
-              <div class="flex justify-between">
-                <p class="text-sm font-medium">Kursi Roda Breezy Basix®</p>
-                <div
-                  class="bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded"
-                >
-                  1
-                </div>
-              </div>
-              <p class="text-sm text-orange-500">Rp130.000/hari</p>
-              <div class="flex items-center mt-2">
-                <input
-                  type="checkbox"
-                  id="guide3"
-                  class="mr-2 h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
-                />
-                <label for="guide3" class="text-sm">Guide</label>
               </div>
             </div>
           </div>
@@ -257,6 +209,11 @@
 // const selectedDeliveryOption = ref('pickup'); // 'pickup' or 'delivery'
 // const items = ref([...]);
 // const totalPrice = computed(() => {...});
+
+type DeliveryType = 'delivery' | 'pickup';
+
+// Initialize selectedDelivery with a default value
+const selectedDelivery = ref<DeliveryType>('delivery');
 </script>
 
 <style scoped>

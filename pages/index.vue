@@ -1,19 +1,19 @@
 <template>
   <div class="pb-20">
     <!-- User Profile Section -->
-    <NuxtLink to="/location-selection">
-      <div class="p-4 flex items-center">
-        <div
-          class="bg-white border border-[#FF9732] rounded-full h-[36px] w-[36px] flex items-center justify-center mr-3"
-        >
-          <NuxtIcon name="mdi:map-marker" class="text-gray-500 h-5 w-5" />
-        </div>
-        <div class="flex-1">
-          <h3 class="text-xs text-gray-500">Alamat</h3>
-          <p class="text-sm font-medium line-clamp-1">
-            {{ currentLocation.address }}
-          </p>
-        </div>
+    <NuxtLink to="/location-selection" class="sticky top-0  z-10">
+      <div class="p-4 flex items-center bg-white shadow-sm rounded-lg mb-2">
+      <div
+        class="bg-white border border-[#FF9732] rounded-full h-[36px] w-[36px] flex items-center justify-center mr-3"
+      >
+        <NuxtIcon name="mdi:map-marker" class="text-gray-500 h-5 w-5" />
+      </div>
+      <div class="flex-1 bg-white">
+        <h3 class="text-xs text-gray-500">Alamat</h3>
+        <p class="text-sm font-medium line-clamp-1">
+        {{ currentLocation.address }}
+        </p>
+      </div>
       </div>
     </NuxtLink>
 

@@ -304,9 +304,9 @@ const search = () => {
     const formattedStartDate = formatDate(dateRange.value.startDate);
     const formattedEndDate = formatDate(dateRange.value.endDate);
     
-    // Navigate to location-selection instead of search-results
+    // Navigate to product-selection instead of search-results
     router.push({
-      name: 'location-selection',
+      name: 'product-selection',
       query: { 
         type: 'daily',
         startDate: formattedStartDate,
@@ -328,9 +328,9 @@ const search = () => {
     const formattedStartTime = formatTime(timeRange.value.startTime);
     const formattedEndTime = formatTime(timeRange.value.endTime);
     
-    // Navigate to location-selection instead of search-results
+    // Navigate to product-selection instead of search-results
     router.push({
-      name: 'location-selection',
+      name: 'product-selection',
       query: { 
         type: 'hourly',
         date: formattedDate,
