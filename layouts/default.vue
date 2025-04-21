@@ -1,17 +1,6 @@
 <template>
-    <div class="min-h-screen bg-gray-50 font-poppins">
+    <div class="min-h-screen bg-gray-50 font-poppins max-w-[412pxp]">
       <div class="max-w-md mx-auto bg-white min-h-screen relative">
-        <!-- Status Bar -->
-        <div
-          class="bg-white p-2 flex justify-between items-center text-xs text-gray-500"
-        >
-          <div class="flex items-center space-x-1">
-            <Icon name="lucide:signal" class="h-3 w-3" />
-            <Icon name="lucide:wifi" class="h-3 w-3" />
-            <Icon name="lucide:battery-full" class="h-3 w-3" />
-          </div>
-        </div>
-  
         <!-- Main Content -->
         <slot />
         
