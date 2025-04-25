@@ -1,19 +1,19 @@
 <template>
   <div class="pb-20">
     <!-- User Profile Section -->
-    <NuxtLink to="/location-selection" class="sticky top-0  z-10">
+    <NuxtLink to="/location-selection" class="sticky top-0 z-10">
       <div class="p-4 flex items-center bg-white shadow-sm rounded-lg mb-2">
-      <div
-        class="bg-white border border-[#FF9732] rounded-full h-[36px] w-[36px] flex items-center justify-center mr-3"
-      >
-        <NuxtIcon name="mdi:map-marker" class="text-gray-500 h-5 w-5" />
-      </div>
-      <div class="flex-1 bg-white">
-        <h3 class="text-xs text-gray-500">Alamat</h3>
-        <p class="text-sm font-medium line-clamp-1">
-        {{ currentLocation.address }}
-        </p>
-      </div>
+        <div
+          class="bg-white border border-[#FF9732] rounded-full h-[36px] w-[36px] flex items-center justify-center mr-3"
+        >
+          <NuxtIcon name="mdi:map-marker" class="text-gray-500 h-5 w-5" />
+        </div>
+        <div class="flex-1 bg-white">
+          <h3 class="text-xs text-gray-500">Alamat</h3>
+          <p class="text-sm font-medium line-clamp-1">
+            {{ currentLocation.address }}
+          </p>
+        </div>
       </div>
     </NuxtLink>
 
@@ -37,7 +37,6 @@
 
     <!-- Voucher Section -->
     <div class="px-4 py-2">
-      <!-- <VoucherCard :voucher="voucher" /> -->
       <img src="/public/package-1.webp" alt="" />
     </div>
 
@@ -50,7 +49,7 @@
         <div
           v-for="i in 3"
           :key="`package-skeleton-${i}`"
-          class="p-4  rounded-lg"
+          class="p-4 rounded-lg"
         >
           <div class="flex items-center gap-3">
             <Skeleton height="80px" width="80px" class="rounded" />
@@ -86,7 +85,7 @@
         <div
           v-for="i in 3"
           :key="`agent-skeleton-${i}`"
-          class="p-4  last:border-b-0"
+          class="p-4 last:border-b-0"
         >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -116,14 +115,20 @@
     <BottomNavigation />
   </div>
 </template>
+
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import type { User, Location, Agent, Package, Voucher } from "~/types";
+import { useRouter } from "vue-router";
+import type { User, Location, Agent, Package } from "~/types";
+import { useTransactionStore } from "~/store/transaction";
 import SearchBar from "~/components/user/search-bar.vue";
 import PackageCard from "~/components/user/package-card.vue";
 import AgentCard from "~/components/user/agent-card.vue";
 import BottomNavigation from "~/components/user/bottom-navigation.vue";
 import Skeleton from "~/components/ui/skeleton.vue";
+
+const router = useRouter();
+const transactionStore = useTransactionStore();
 
 const loadingLocation = ref(true);
 const loadingUser = ref(true);
@@ -219,6 +224,9 @@ const loadAgents = async () => {
 
 onMounted(async () => {
   try {
+    // Reset transaction store when landing on home page
+    transactionStore.resetTransaction();
+    
     // Simulate loading all data
     await Promise.all([
       new Promise(resolve => setTimeout(() => {
@@ -240,12 +248,28 @@ onMounted(async () => {
 // Methods
 const bookPackage = (pkg: Package) => {
   console.log("Booking package:", pkg);
-  // Implement booking logic
+  // Store the selected package in the transaction store
+  transactionStore.selectPackage(pkg);
+  // Navigate to the agent selection page if no agent is selected yet
+  if (!transactionStore.hasSelectedAgent) {
+    router.push('/search');
+  } else {
+    // If agent is already selected, go directly to transaction detail
+    router.push('/search');
+  }
 };
 
 const viewAgent = (agent: Agent) => {
   console.log("Viewing agent:", agent);
-  // Implement navigation to agent details
+  // Store the selected agent in the transaction store
+  transactionStore.selectAgent(agent);
+  // If a package is already selected, go to transaction detail
+  if (transactionStore.isPackageBooking) {
+    router.push('/transaction-detail');
+  } else {
+    // If no package is selected, go to custom booking page
+    router.push('/custom-booking');
+  }
 };
 </script>
 

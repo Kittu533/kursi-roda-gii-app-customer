@@ -128,7 +128,7 @@
       <div class="bg-white p-4 rounded-lg">
         <!-- Voucher Section -->
         <div class="bg-white p-4 mb-2 rounded-lg">
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between" @click="showVoucherModal = true">
             <div class="flex items-center">
               <div class="bg-yellow-100 rounded-full p-2 mr-3 flex-shrink-0">
                 <NuxtIcon
@@ -139,7 +139,8 @@
               <p class="text-sm font-medium">Voucher</p>
             </div>
             <div class="flex items-center">
-              <span class="text-xs text-gray-500 mr-2">2 Voucher Tersedia</span>
+              <span v-if="!selectedVoucher" class="text-xs text-gray-500 mr-2">2 Voucher Tersedia</span>
+              <span v-else class="text-xs text-orange-500 mr-2">{{ selectedVoucher.name }}</span>
               <NuxtIcon
                 name="mdi:chevron-right"
                 class="w-5 h-5 text-gray-400"
@@ -174,11 +175,15 @@
           </div>
           <div class="flex justify-between text-sm">
             <p class="text-gray-500">Total Biaya Pengiriman</p>
-            <p>Gratis</p>
+            <p>{{ selectedDelivery === 'delivery' ? 'Rp13.000' : 'Gratis' }}</p>
           </div>
           <div class="flex justify-between text-sm">
             <p class="text-gray-500">Biaya Layanan</p>
             <p>-</p>
+          </div>
+          <div v-if="selectedVoucher" class="flex justify-between text-sm">
+            <p class="text-gray-500">Diskon Voucher</p>
+            <p class="text-green-500">-Rp{{ discountAmount }}</p>
           </div>
           <div class="border-t pt-2 mt-2">
             <div class="flex justify-between items-center">
@@ -186,7 +191,7 @@
                 <p class="text-sm font-medium">Total</p>
                 <p class="text-xs text-gray-500">Sudah termasuk pajak</p>
               </div>
-              <p class="text-lg font-medium text-orange-500">Rp391.000</p>
+              <p class="text-lg font-medium text-orange-500">Rp{{ totalPrice }}</p>
             </div>
             <button
               class="bg-orange-500 text-white px-6 py-3 rounded-lg font-medium mt-4 w-full"
@@ -197,23 +202,146 @@
         </div>
       </div>
     </div>
+
+    <!-- Voucher Modal -->
+    <div v-if="showVoucherModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg w-full max-w-md">
+        <div class="flex justify-between items-center p-4 border-b">
+          <h2 class="text-lg font-medium">Voucher</h2>
+          <button @click="showVoucherModal = false" class="text-gray-500">
+            <span class="text-xl">×</span>
+          </button>
+        </div>
+        
+        <div class="p-4">
+          <!-- Voucher Input -->
+          <div class="flex mb-4">
+            <input 
+              v-model="voucherCode" 
+              type="text" 
+              placeholder="Masukkan Kode Voucher" 
+              class="flex-1 border rounded-l-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
+            />
+            <button 
+              class="bg-gray-300 text-gray-700 px-4 py-2 rounded-r-md text-sm"
+              @click="applyCustomVoucher"
+            >
+              Pakai
+            </button>
+          </div>
+          
+          <!-- Available Vouchers -->
+          <div class="space-y-3">
+            <div v-for="voucher in availableVouchers" :key="voucher.id" class="border rounded-md overflow-hidden">
+              <div class="flex items-center p-3">
+                <div class="flex-shrink-0 mr-3">
+                  <NuxtIcon name="mdi:ticket-percent" class="w-6 h-6 text-orange-500" />
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium">{{ voucher.name }}</p>
+                  <p class="text-xs text-gray-500">{{ voucher.description }}</p>
+                </div>
+                <button 
+                  @click="selectVoucher(voucher)" 
+                  class="bg-orange-500 text-white px-4 py-1.5 rounded text-sm"
+                >
+                  Pakai
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Component logic would go here
-// For now, this is just a UI component with no functionality
-
-// You could add reactive state for the items, delivery options, etc.
-// Example:
-// const selectedDeliveryOption = ref('pickup'); // 'pickup' or 'delivery'
-// const items = ref([...]);
-// const totalPrice = computed(() => {...});
+import { ref, computed } from 'vue';
 
 type DeliveryType = 'delivery' | 'pickup';
 
 // Initialize selectedDelivery with a default value
 const selectedDelivery = ref<DeliveryType>('delivery');
+
+// Voucher modal state
+const showVoucherModal = ref(false);
+const voucherCode = ref('');
+
+// Voucher data
+interface Voucher {
+  id: number;
+  name: string;
+  description: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+}
+
+const availableVouchers = ref<Voucher[]>([
+  {
+    id: 1,
+    name: 'Diskon 10%',
+    description: 'Min. Belanja 3 Item',
+    discountType: 'percentage',
+    discountValue: 10
+  },
+  {
+    id: 2,
+    name: 'Diskon 15%',
+    description: 'Min. Belanja 5 Item',
+    discountType: 'percentage',
+    discountValue: 15
+  }
+]);
+
+// Selected voucher
+const selectedVoucher = ref<Voucher | null>(null);
+
+// Base price calculation
+const basePrice = 390000; // Rp390.000
+const deliveryPrice = computed(() => selectedDelivery.value === 'delivery' ? 13000 : 0);
+
+// Calculate discount amount
+const discountAmount = computed(() => {
+  if (!selectedVoucher.value) return 0;
+  
+  if (selectedVoucher.value.discountType === 'percentage') {
+    return Math.round((basePrice * selectedVoucher.value.discountValue) / 100);
+  } else {
+    return selectedVoucher.value.discountValue;
+  }
+});
+
+// Calculate total price
+const totalPrice = computed(() => {
+  const total = basePrice + deliveryPrice.value - discountAmount.value;
+  return total.toLocaleString('id-ID');
+});
+
+// Function to select a voucher
+const selectVoucher = (voucher: Voucher) => {
+  selectedVoucher.value = voucher;
+  showVoucherModal.value = false;
+};
+
+// Function to apply a custom voucher code
+const applyCustomVoucher = () => {
+  if (!voucherCode.value) return;
+  
+  // Here you would typically validate the voucher code against your backend
+  // For this example, we'll just add a mock voucher
+  const customVoucher: Voucher = {
+    id: 3,
+    name: `Voucher ${voucherCode.value}`,
+    description: 'Kode Voucher Kustom',
+    discountType: 'fixed',
+    discountValue: 25000 // Example: Rp25.000 discount
+  };
+  
+  selectedVoucher.value = customVoucher;
+  showVoucherModal.value = false;
+  voucherCode.value = '';
+};
 </script>
 
 <style scoped>

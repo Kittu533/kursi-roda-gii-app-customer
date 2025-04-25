@@ -68,7 +68,8 @@
         <div
           v-for="product in store.availableProducts"
           :key="product.id"
-          class="flex gap-3"
+          class="flex gap-3 border border-gray-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition"
+          @click="openProductDetail(product)"
         >
           <!-- Product image -->
           <div
@@ -99,21 +100,10 @@
             </p>
 
             <div class="flex justify-between items-center">
-              <div class="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  :id="`guide-${product.id}`"
-                  v-model="product.guideSelected"
-                  class="rounded border-gray-300"
-                />
-                <label :for="`guide-${product.id}`" class="text-sm"
-                  >Guide</label
-                >
-              </div>
-
               <div class="flex items-center gap-1">
+                <!-- Tombol kurang -->
                 <button
-                  @click="decrementQuantity(product.id)"
+                  @click.stop="decrementQuantity(product.id)"
                   class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center"
                   :class="{ 'opacity-50': product.quantity === 0 }"
                 >
@@ -122,8 +112,9 @@
 
                 <span class="w-6 text-center">{{ product.quantity }}</span>
 
+                <!-- Tombol tambah -->
                 <button
-                  @click="incrementQuantity(product.id)"
+                  @click.stop="incrementQuantity(product.id)"
                   class="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center"
                 >
                   <NuxtIcon
@@ -132,14 +123,6 @@
                   />
                 </button>
               </div>
-            </div>
-
-            <div
-              @click="openProductDetail(product)"
-              class="flex justify-end items-end text-xs text-gray-500 cursor-pointer"
-            >
-              Lihat detail
-              <NuxtIcon name="ic:baseline-chevron-right" class="w-3 h-3 ml-1" />
             </div>
           </div>
         </div>
@@ -192,7 +175,9 @@
             >
               <img
                 :src="image"
-                :alt="`${activeProduct ? activeProduct.productName : ''} view ${index + 1}`"
+                :alt="`${activeProduct ? activeProduct.productName : ''} view ${
+                  index + 1
+                }`"
                 class="w-full h-full object-cover"
               />
             </button>
@@ -285,7 +270,6 @@ interface Product {
   guideSelected?: boolean;
   description?: string;
 }
-
 
 export default defineComponent({
   setup() {

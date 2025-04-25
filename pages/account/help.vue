@@ -1,7 +1,7 @@
 <template>
     <div class="min-h-screen bg-white">
       <!-- Header -->
-      <div class="flex items-center px-4 py-3 border-b">
+      <div class="flex items-center px-4 py-3 border-b border-gray-100 mx-8">
         <button @click="navigateBack" class="mr-3 pulse-on-hover">
           <NuxtIcon name="mdi:chevron-left" class="w-6" />
         </button>
@@ -10,7 +10,7 @@
   
       <!-- Help Content -->
       <div class="p-5">
-        <div class="bg-white rounded-xl border p-5 shadow-sm">
+        <div class="bg-white rounded-xl border  border-gray-100 p-5 shadow-sm">
           <h2 class="text-center font-medium text-lg mb-6">Ada yang Bisa Kami Bantu?</h2>
           
           <!-- Contact Options with Skeleton Loading -->
@@ -18,7 +18,7 @@
             <template v-if="!isLoading">
               <button 
                 @click="contactViaChat"
-                class="flex items-center justify-between w-full py-3.5 border-b pulse-on-hover"
+                class="flex items-center justify-between w-full px-4 py-3.5 border border-gray-100 rounded-[10px] pulse-on-hover"
               >
                 <span class="font-medium text-[14px]">Chat Agen</span>
                 <div class="w-7 h-7 rounded-full bg-green-50 flex items-center justify-center text-green-500">
@@ -28,7 +28,7 @@
               
               <button 
                 @click="contactViaPhone"
-                class="flex items-center justify-between w-full py-3.5 pulse-on-hover"
+                class="flex items-center justify-between w-full px-4 py-3.5 border border-gray-100 rounded-[10px] pulse-on-hover"
               >
                 <span class="font-medium text-[14px]">Telepon Agen</span>
                 <div class="w-7 h-7 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
@@ -37,7 +37,7 @@
               </button>
             </template>
             <template v-else>
-              <div class="flex items-center justify-between w-full py-3.5 border-b">
+              <div class="flex items-center justify-between w-full py-3.5">
                 <Skeleton height="18px" width="100px" />
                 <Skeleton height="28px" width="28px" class="rounded-full" />
               </div>

@@ -1,7 +1,8 @@
 <template>
   <div class="pb-20 bg-white h-screen">
-    <!-- Header -->
-    <div class="p-4 flex items-center">
+   <div class="flex flex-col bg-white sticky top-0 z-[100000]">
+     <!-- Header -->
+     <div class="p-4 flex items-center">
       <button @click="goBack" class="mr-3">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M15 18l-6-6 6-6" />
@@ -27,6 +28,7 @@
         />
       </div>
     </div>
+   </div>
 
     <!-- Map -->
     <div class="relative h-380 bg-gray-100">
@@ -425,7 +427,7 @@ const confirmLocation = () => {
       localStorage.setItem('recentLocations', JSON.stringify(updatedRecentLocations));
 
       router.push({
-        name: 'product-selection',
+        name: 'index',
         query: {
           locationId: selectedLocation.value.id,
           locationName: selectedLocation.value.name,

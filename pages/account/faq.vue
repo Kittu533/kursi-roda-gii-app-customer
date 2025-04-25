@@ -1,7 +1,7 @@
 <template>
     <div class="min-h-screen bg-white">
       <!-- Header -->
-      <div class="flex items-center px-4 py-3 border-b">
+      <div class="flex items-center px-4 py-3 border-b border-gray-100 mx-8">
         <button @click="navigateBack" class="mr-3 pulse-on-hover">
           <NuxtIcon name="mdi:chevron-left" class="w-6" />
         </button>
@@ -18,7 +18,7 @@
             <div 
               v-for="(faq, index) in faqs" 
               :key="index" 
-              class="border rounded-[10px] bg-white shadow-sm"
+              class="border rounded-[10px] border-gray-100 shadow-sm"
             >
               <button 
                 @click="toggleFaq(index)"

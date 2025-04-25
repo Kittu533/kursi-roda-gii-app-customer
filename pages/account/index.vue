@@ -3,7 +3,7 @@
     <h1 class="text-xl font-bold mb-4">Profil</h1>
 
     <!-- Profile Card with Skeleton Loading -->
-    <div class="bg-orange-400 text-white rounded-xl p-4 mb-6" v-if="!isLoading">
+    <div class="bg-gradient-to-l from-orange-400 to-orange-600 text-white rounded-xl p-4 mb-6" v-if="!isLoading">
       <h2 class="text-lg font-semibold">{{ user.name }}</h2>
       <p class="text-sm">{{ user.email }}</p>
     </div>
@@ -18,12 +18,12 @@
         <div
           v-for="(item, index) in menuItems"
           :key="index"
-          class="flex items-center justify-between p-4 border-b last:border-b-0 pulse-on-hover"
+          class="flex items-center justify-between p-4  last:border-b-0 pulse-on-hover"
           @click="navigateTo(item.route)"
         >
           <div class="flex items-center gap-3">
-            <div class="w-[40px] h-[40px] flex items-center justify-center text-gray-500 bg-gray-200 rounded-full">
-              <NuxtIcon :name="item.icon" class="w-6 h-6 text-gray-500" />
+            <div class="w-[40px] h-[40px] flex items-center justify-center text-gray-500 bg-gray-50 rounded-full">
+              <NuxtIcon :name="item.icon" class="w-6 h-6 text-orange-500" />
             </div>
             <div>
               <h3 class="font-medium">{{ item.title }}</h3>
@@ -37,7 +37,7 @@
         <div 
           v-for="i in 4" 
           :key="i" 
-          class="flex items-center justify-between p-4 border-b last:border-b-0"
+          class="flex items-center justify-between p-4"
         >
           <div class="flex items-center gap-3">
             <Skeleton height="40px" width="40px" class="rounded-full" />
