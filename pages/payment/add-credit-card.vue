@@ -27,11 +27,11 @@
                 class="flex-1 outline-none text-sm"
                 v-model="cardNumber"
               />
-              <div class="flex space-x-1">
+              <!-- <div class="flex space-x-1">
                 <img src="/assets/images/cards/visa.png" alt="Visa" class="h-5 w-8" />
                 <img src="/assets/images/cards/mastercard.png" alt="Mastercard" class="h-5 w-8" />
                 <img src="/assets/images/cards/amex.png" alt="Amex" class="h-5 w-8" />
-              </div>
+              </div> -->
             </div>
           </div>
           

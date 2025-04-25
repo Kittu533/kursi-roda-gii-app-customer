@@ -110,7 +110,7 @@
   const selectedBank = ref({
     id: 4,
     name: 'Bank BRI',
-    logo: '/assets/images/banks/bri.png'
+    logo: ''
   });
   
   let timer: any = null;

@@ -44,13 +44,13 @@
                 </div>
               </div>
               
-              <div class="flex items-center justify-between p-3 border-b cursor-pointer" @click="navigateTo('/payment/add-credit-card')">
+              <!-- <div class="flex items-center justify-between p-3 border-b cursor-pointer" @click="navigateTo('/payment/add-credit-card')">
                 <div class="flex items-center">
                   <img src="/assets/images/cards/mastercard.png" alt="Add Card" class="w-8 h-5 mr-2" />
                   <span class="text-sm">Tambahkan Kartu Kredit/Debit Baru</span>
                 </div>
                 <NuxtIcon name="mdi:plus" class="text-gray-500" />
-              </div>
+              </div> -->
             </div>
           </PaymentOption>
         </div>
@@ -80,14 +80,14 @@
       id: 1, 
       type: 'mastercard', 
       name: 'CIMB', 
-      logo: '/assets/images/cards/mastercard.png',
+      logo: '',
       last4: '4321'
     },
     { 
       id: 2, 
       type: 'visa', 
       name: 'Mandiri', 
-      logo: '/assets/images/cards/visa.png',
+      logo: '',
       last4: '1234'
     }
   ]);
