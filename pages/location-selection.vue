@@ -390,7 +390,7 @@ const confirmLocation = () => {
       localStorage.setItem('recentLocations', JSON.stringify(updatedRecentLocations));
 
       router.push({
-        name: 'index',
+        name: 'home',
         query: {
           locationId: selectedLocation.value.id,
           locationName: selectedLocation.value.name,

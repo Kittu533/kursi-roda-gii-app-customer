@@ -1,39 +1,26 @@
 <template>
   <div class="pb-20">
     <!-- Header -->
-    <div class="py-[16px] px-[20px] flex items-center">
-      <button @click="$router.back()" class="mr-3">
-        <!-- Back icon -->
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M15 18l-6-6 6-6" />
-        </svg>
-      </button>
-      <div class="flex-1 flex items-center">
-        <div
-          class="bg-white border border-[#FF9732] rounded-full h-[36px] w-[36px] flex items-center justify-center mr-3"
-        >
-          <NuxtIcon name="mdi:map-marker" class="text-gray-500 h-5 w-5" />
-        </div>
-        <div>
-          <p class="text-[14px] font-[400px]">
-            {{ selectedLocation?.name || "Select Location" }}
-          </p>
-          <p class="text-[12px] font-[400px] text-[#FF5F00]">
-            {{ selectedLocation?.address || "No address selected" }}
-          </p>
-        </div>
-      </div>
+    <div class="py-4 px-5 flex items-center gap-3">
+  <button @click="$router.back()" class="shrink-0">
+    <NuxtIcon name="material-symbols-light:chevron-left" class="h-8 w-8 text-center justify-start flex" />
+  </button>
+  
+  <div class="flex-1 min-w-0 flex items-center gap-3">
+    <div class="shrink-0 bg-white border border-orange-400 rounded-full h-9 w-9 flex items-center justify-center">
+      <NuxtIcon name="mdi:map-marker" class="text-gray-500 h-5 w-5" />
     </div>
+    
+    <div class="min-w-0">
+      <p class="text-sm font-normal truncate">
+        {{ selectedLocation?.name || "Select Location" }}
+      </p>
+      <p class="text-xs font-normal text-orange-500 truncate">
+        {{ selectedLocation?.address || "No address selected" }}
+      </p>
+    </div>
+  </div>
+</div>
 
     <!-- Search Bar -->
     <div class="py-[16px] px-[20px]">
