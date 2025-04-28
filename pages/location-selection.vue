@@ -156,11 +156,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import BottomNavigation from "~/components/user/bottom-navigation.vue";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useLocationStore } from '@/store/location-store';
 
 interface Location {
   id: string;
@@ -181,46 +182,8 @@ const currentMarker = ref<L.Marker | null>(null);
 const map = ref<L.Map | null>(null);
 
 // Sample data for saved locations
-const savedLocations = ref<Location[]>([
-  {
-    id: "1",
-    name: "Lokasi Saat Ini",
-    address: "Sedang mendeteksi lokasi...",
-    coordinates: {
-      lat: 0,
-      lng: 0,
-    },
-  },
-  {
-    id: "2",
-    name: "Universitas Teknologi Yogyakarta",
-    address: "Jl. Ringroad Utara, Jombor, Mlati, Kabupaten Sleman, Daerah Istimewa Yogyakarta 55285",
-    coordinates: {
-      lat: -7.747033,
-      lng: 110.355398,
-    },
-  },
-  {
-    id: "3",
-    name: "Rumah",
-    address: "Dusun Tiga Trihanggo, RT. 8/ RW. 18, Trihanggo, Mlati, Kab. Sleman",
-    phoneNumber: "Cahya (+62) 821-4680-4915",
-    coordinates: {
-      lat: -7.747033,
-      lng: 110.355398,
-    },
-  },
-]);
-
-// Save locations to localStorage
-const saveLocationsToStorage = () => {
-  try {
-    localStorage.setItem('savedLocations', JSON.stringify(savedLocations.value));
-    console.log('Locations saved to localStorage');
-  } catch (error) {
-    console.error('Error saving locations to localStorage:', error);
-  }
-};
+const locationStore = useLocationStore();
+const savedLocations = computed(() => locationStore.locations);
 
 // Initialize map
 onMounted(() => {
@@ -445,8 +408,7 @@ const confirmLocation = () => {
 
 const addNewLocation = () => {
   try {
-    console.log("Adding new location");
-    // Implement logic to add a new location
+    router.push({ name: 'add-new-address' });
   } catch (error) {
     console.error('Error in addNewLocation:', error);
   }
@@ -458,6 +420,45 @@ const goBack = () => {
   } catch (error) {
     console.error('Error in goBack:', error);
   }
+};
+
+const selectSavedLocation = (location) => {
+  locationStore.selectLocation(location);
+  selectedLocation.value = location;
+  
+  if (map.value) {
+    map.value.setView(
+      [location.coordinates.lat, location.coordinates.lng], 
+      17
+    );
+    
+    // Update marker
+    updateMarkerForLocation(location);
+  }
+};
+
+const updateMarkerForLocation = (location) => {
+  if (!map.value) return;
+  
+  // Remove existing marker
+  if (currentMarker.value) {
+    map.value.removeLayer(currentMarker.value);
+  }
+  
+  const customIcon = L.divIcon({
+    className: 'custom-marker',
+    html: `<div class="relative">
+             <div class="w-6 h-6 bg-orange-500 rounded-full animate-ping opacity-75"></div>
+             <div class="absolute top-1 left-1 w-4 h-4 bg-orange-600 rounded-full"></div>
+           </div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+  });
+
+  currentMarker.value = L.marker(
+    [location.coordinates.lat, location.coordinates.lng], 
+    { icon: customIcon }
+  ).addTo(map.value);
 };
 </script>
 
