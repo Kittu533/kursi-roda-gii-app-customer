@@ -22,7 +22,7 @@
         <div
           class="bg-white border border-[#FF9732] rounded-full h-[36px] w-[36px] flex items-center justify-center mr-3"
         >
-          <NuxtIcon name="mdi:map-marker" class="text-gray-500 h-5 w-5" />
+          <NuxtIcon name="mdi:map-marker" class="text-orange-500 h-5 w-5" />
         </div>
         <div>
           <p class="text-[14px] font-[400px]">
@@ -36,7 +36,7 @@
     </div>
 
     <!-- Rental Type Tabs -->
-    <div class="flex border-b">
+    <div class="flex">
       <button
         @click="activeTab = 'daily'"
         class="flex-1 py-3 text-center font-medium text-sm relative"
@@ -65,10 +65,10 @@
     <div class="p-4 flex-1">
       <div class="space-y-4">
         <!-- Daily Rental Form -->
-        <div v-if="activeTab === 'daily'">
+        <div v-if="activeTab === 'daily'" class="space-y-2">
           <!-- Rental Date -->
           <div
-            class="flex items-center justify-between border-b border-gray-200 py-3"
+            class="flex items-center justify-between border border-gray-200 rounded-[10px] px-3 py-3"
           >
             <span class="text-gray-500">Tanggal Sewa</span>
             <DatePicker
@@ -80,7 +80,7 @@
 
           <!-- Return Date -->
           <div
-            class="flex items-center justify-between border-b border-gray-200 py-3"
+            class="flex items-center justify-between border rounded-[10px] px-3 border-gray-200 py-3"
           >
             <span class="text-gray-500">Tanggal Kembali</span>
             <DatePicker
@@ -153,35 +153,7 @@
     </div>
 
     <!-- Bottom Navigation -->
-    <div class="fixed bottom-0 left-0 right-0 flex justify-center z-10">
-      <div
-        class="bg-white border-t border-gray-200 flex justify-around items-center h-16 w-full max-w-[480px]"
-      >
-        <NuxtLink
-          to="/"
-          class="flex flex-col items-center justify-center w-1/3 h-full text-orange-500"
-        >
-          <NuxtIcon name="mdi:home" class="w-5 h-5 mb-1" />
-          <span class="text-xs">Beranda</span>
-        </NuxtLink>
-
-        <NuxtLink
-          to="/transaksi"
-          class="flex flex-col items-center justify-center w-1/3 h-full text-gray-400"
-        >
-          <NuxtIcon name="mdi:file-document-outline" class="w-5 h-5 mb-1" />
-          <span class="text-xs">Transaksi</span>
-        </NuxtLink>
-
-        <NuxtLink
-          to="/akun"
-          class="flex flex-col items-center justify-center w-1/3 h-full text-gray-400"
-        >
-          <NuxtIcon name="mdi:account" class="w-5 h-5 mb-1" />
-          <span class="text-xs">Akun</span>
-        </NuxtLink>
-      </div>
-    </div>
+    <BottomNavigation />
   </div>
 </template>
 
@@ -191,6 +163,7 @@ import { useRouter } from "vue-router";
 import { useRentalStore } from "~/store/rental";
 import DatePicker from "~/components/ui/date-picker.vue";
 import TimePicker from "~/components/ui/time-picker.vue";
+import BottomNavigation from "~/components/user/bottom-navigation.vue";
 
 // Define interfaces
 interface DateRange {
@@ -337,7 +310,6 @@ const search = () => {
   if (!isSelectionValid.value) return;
 
   if (activeTab.value === "daily") {
-    // Save to store
     rentalStore.setRentalDetails({
       type: "daily",
       startDate: dateRange.value.startDate,
@@ -345,11 +317,9 @@ const search = () => {
       location: location.value,
     });
 
-    // Format dates for query parameters
-    const formattedStartDate = formatDate(dateRange.value.startDate);
-    const formattedEndDate = formatDate(dateRange.value.endDate);
+    const formattedStartDate = dateRange.value.startDate?.toISOString();
+    const formattedEndDate = dateRange.value.endDate?.toISOString();
 
-    // Navigate to product-selection instead of search-results
     router.push({
       name: "product-selection",
       query: {

@@ -21,32 +21,35 @@
     </div>
 
     <!-- Date selection -->
-    <div class="px-4 py-2">
-      <div class="flex justify-between items-center mb-2">
-        <div class="text-sm">
-          {{ store.selectedDates.startDate }}
-        </div>
-        <button
-          class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center"
-        >
-          <NuxtIcon
-            name="ic:baseline-calendar-month"
-            class="w-5 h-5 text-white"
-          />
-        </button>
+    <div class="px-4 py-2 space-y-2">
+      <!-- Rental Date -->
+      <!-- Rental Date -->
+      <div
+        class="flex items-center justify-between border border-gray-200 rounded-[10px] px-3 py-3"
+      >
+        <span class="text-gray-500">Tanggal Sewa</span>
+        <DatePicker
+          v-if="dateRange"
+          v-model="dateRange.startDate"
+          placeholder="Pilih tanggal"
+          :min-date="new Date()"
+          @update:model-value="handleStartDateChange"
+        />
       </div>
-      <div class="flex justify-between items-center">
-        <div class="text-sm">
-          {{ store.selectedDates.endDate }}
-        </div>
-        <button
-          class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center"
-        >
-          <NuxtIcon
-            name="ic:baseline-calendar-month"
-            class="w-5 h-5 text-white"
-          />
-        </button>
+
+      <!-- Return Date -->
+      <div
+        class="flex items-center justify-between border rounded-[10px] px-3 border-gray-200 py-3"
+      >
+        <span class="text-gray-500">Tanggal Kembali</span>
+        <DatePicker
+          v-if="dateRange"
+          v-model="dateRange.endDate"
+          placeholder="Pilih tanggal"
+          :min-date="dateRange.startDate || new Date()"
+          :disabled-dates="isBeforeStartDate"
+          @update:model-value="handleEndDateChange"
+        />
       </div>
     </div>
 
@@ -62,6 +65,13 @@
 
       <div v-else-if="store.error" class="text-red-500 text-center py-4">
         {{ store.error }}
+      </div>
+
+      <div
+        v-else-if="store.availableProducts.length === 0"
+        class="text-center py-4 text-gray-500"
+      >
+        Tidak ada produk tersedia untuk tanggal yang dipilih
       </div>
 
       <div v-else class="space-y-4">
@@ -134,6 +144,8 @@
       <button
         @click="orderNow"
         class="w-full py-3 bg-orange-500 text-white font-medium rounded-lg"
+        :class="{ 'opacity-70 cursor-not-allowed': !hasSelectedProducts }"
+        :disabled="!hasSelectedProducts"
       >
         Pesan Sekarang
       </button>
@@ -257,9 +269,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from "vue";
+import { defineComponent, ref, computed, watch } from "vue";
 import { useProductsStore } from "@/store/product";
-import { definePageMeta, navigateTo } from "#imports";
+import { definePageMeta, navigateTo, useRoute } from "#imports";
+import DatePicker from "@/components/ui/date-picker.vue";
 
 // Define a Product interface to use throughout the component
 interface Product {
@@ -269,14 +282,107 @@ interface Product {
   quantity: number;
   guideSelected?: boolean;
   description?: string;
+  availableDates?: string[]; // Array of dates when product is available
+}
+
+// Define DateRange interface
+interface DateRange {
+  startDate: Date | null;
+  endDate: Date | null;
 }
 
 export default defineComponent({
+  components: {
+    DatePicker,
+  },
+
   setup() {
     const store = useProductsStore();
+    const route = useRoute();
 
     // Active product for detail view
     const activeProduct = ref<Product | null>(null);
+
+    // Date range state
+    const dateRange = ref<DateRange>({
+      startDate: null,
+      endDate: null,
+    });
+
+    // Initialize dates from query parameters or store
+    const initializeDates = () => {
+      // Try to get dates from query parameters first
+      if (route.query.startDate && typeof route.query.startDate === "string") {
+        try {
+          dateRange.value.startDate = new Date(route.query.startDate);
+        } catch (e) {
+          console.error("Invalid start date in query params");
+        }
+      } else if (store.selectedDates.startDate) {
+        // Fall back to store
+        dateRange.value.startDate = new Date(store.selectedDates.startDate);
+      } else {
+        // Default to today
+        dateRange.value.startDate = new Date();
+      }
+
+      if (route.query.endDate && typeof route.query.endDate === "string") {
+        try {
+          dateRange.value.endDate = new Date(route.query.endDate);
+        } catch (e) {
+          console.error("Invalid end date in query params");
+        }
+      } else if (store.selectedDates.endDate) {
+        dateRange.value.endDate = new Date(store.selectedDates.endDate);
+      }
+    };
+
+    // Initialize dates
+    initializeDates();
+
+    // Helper function to check if a date is before the start date
+    const isBeforeStartDate = (date: Date): boolean => {
+      if (!dateRange.value.startDate) return false;
+      return date < dateRange.value.startDate;
+    };
+
+    // Handle start date change
+    const handleStartDateChange = (date: Date) => {
+      // Update store
+      store.setStartDate(date.toISOString());
+
+      // If end date is before start date, reset it
+      if (dateRange.value.endDate && dateRange.value.endDate < date) {
+        dateRange.value.endDate = null;
+        store.setEndDate(null);
+      }
+
+      // Fetch products based on new date range
+      fetchAvailableProducts();
+    };
+
+    // Handle end date change
+    const handleEndDateChange = (date: Date) => {
+      // Update store
+      store.setEndDate(date.toISOString());
+
+      // Fetch products based on new date range
+      fetchAvailableProducts();
+    };
+
+    // Fetch available products based on selected date range
+    const fetchAvailableProducts = () => {
+      if (!dateRange.value.startDate) return;
+
+      const params = {
+        startDate: dateRange.value.startDate.toISOString(),
+        endDate: dateRange.value.endDate
+          ? dateRange.value.endDate.toISOString()
+          : dateRange.value.startDate.toISOString(),
+      };
+
+      store.fetchProductsByDateRange(params);
+    };
 
     // Touch handling variables
     const touchStartY = ref(0);
@@ -300,14 +406,17 @@ export default defineComponent({
       return productImages.value[currentImageIndex.value] || "/kursi-roda.webp";
     });
 
+    // Computed property to check if any products are selected
+    const hasSelectedProducts = computed(() => {
+      return store.selectedProducts.length > 0;
+    });
+
     // Select image in the gallery
     const selectImage = (index: number): void => {
       currentImageIndex.value = index;
     };
 
-    // Fetch products when component is created
-    store.fetchProducts({ status: "tersedia" });
-
+    // Format price
     const formatPrice = (price: number): string => {
       return price.toLocaleString("id-ID");
     };
@@ -377,8 +486,20 @@ export default defineComponent({
       }
     };
 
+    // Watch for date changes
+    watch(
+      () => [dateRange.value.startDate, dateRange.value.endDate],
+      () => {
+        // This is handled by the individual change handlers now
+      }
+    );
+
+    // Initial fetch of products
+    fetchAvailableProducts();
+
     return {
       store,
+      dateRange,
       formatPrice,
       activeProduct,
       openProductDetail,
@@ -392,6 +513,10 @@ export default defineComponent({
       selectImage,
       incrementDetailQuantity,
       decrementDetailQuantity,
+      isBeforeStartDate,
+      handleStartDateChange,
+      handleEndDateChange,
+      hasSelectedProducts,
     };
   },
 
