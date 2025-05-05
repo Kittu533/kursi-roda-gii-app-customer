@@ -1,14 +1,17 @@
 <template>
-   <NuxtLink to="/welcome-page" class="flex flex-col items-center justify-center min-h-screen bg-[#FF5F00] px-4">
-      <div class="max-w-md w-full flex flex-col items-center">
-         <!-- Wheelchair Image -->
-         <img
-            src="/public/logo-app.webp"
-            alt="Electric Wheelchair"
-            class="w-[200px] h-auto mb-8"
-         />
-      </div>
-   </NuxtLink>
+  <NuxtLink
+    to="/intro"
+    class="flex flex-col items-center justify-center min-h-screen bg-white px-4"
+  >
+    <div class="max-w-md w-full flex flex-col items-center">
+      <!-- Wheelchair Image -->
+      <img
+        src="/public/logo-app.webp"
+        alt="Electric Wheelchair"
+        class="w-[200px] h-auto mb-8"
+      />
+    </div>
+  </NuxtLink>
 </template>
 
 <script setup lang="ts">
@@ -21,7 +24,7 @@ const isRedirecting = ref(false);
 
 const startApp = () => {
   isRedirecting.value = true;
-  router.push("/welcome-page");
+  router.push("/intro");
 };
 
 onMounted(() => {

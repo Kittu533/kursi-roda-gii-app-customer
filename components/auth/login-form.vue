@@ -3,23 +3,19 @@
     <h1 class="text-3xl font-bold mb-8">MASUK</h1>
 
     <div class="w-full space-y-6">
-      <div class="space-y-1">
-        <div class="flex border border-gray-300 rounded-md overflow-hidden">
-          <div
-            class="bg-gray-50 px-3 py-2 text-gray-500 border-r border-gray-300"
-          >
-            +62
-          </div>
+      <div class="space-y-1 p-4 border border-gray-100 rounded-md overflow-hidden">
+        <label for="phone" class="text-sm text-orange-500">Masukkan No. Whatsapp atau Alamat Email Aktif</label>
+        <div class="flex border border-gray-100 rounded-md overflow-hidden">
           <input
             v-model="phoneNumber"
             type="text"
-            placeholder="Nomor WhatsApp"
-            class="flex-1 px-3 py-2 outline-none"
+            placeholder="Nomor WhatsApp/Email"
+            class="flex-1 px-3 py-2 border-none focus:outline-none focus:ring-0"
+            :class="{'border-red-500 ': phoneError}"
             @keyup.enter="handleLogin"
           />
         </div>
-        <p class="text-xs text-gray-500">Contoh : 89673647187</p>
-        <p v-if="phoneError" class="text-xs text-red-500">{{ phoneError }}</p>
+        <p v-if="phoneError" class="text-[12px] text-red-500">{{ phoneError }}</p>
       </div>
 
       <div class="flex items-start space-x-2">
@@ -27,7 +23,7 @@
           v-model="agreeToTerms"
           type="checkbox"
           id="terms"
-          class="mt-1 h-4 w-4 accent-orange-500"
+          class="mt-1 h-4 w-4 orange-500 focus:ring-orange-500 border-gray-300 rounded"
         />
         <label for="terms" class="text-xs text-gray-600">
           Saya menyetujui syarat & ketentuan serta kebijakan yang berlaku
@@ -98,7 +94,7 @@ const validateForm = (): boolean => {
   }
 
   if (!validatePhoneNumber(phoneNumber.value)) {
-    phoneError.value = "Nomor HP harus terdiri dari 10-14 digit angka";
+    phoneError.value = "Format yang anda masukan salah";
     return false;
   }
 

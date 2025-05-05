@@ -14,7 +14,7 @@ export default defineNuxtConfig({
           href: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
           integrity: 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=',
           crossorigin: ''
-        }
+        },
       ],
       script: [
         {
@@ -31,6 +31,7 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@nuxt/icon',
     'pinia-plugin-persistedstate/nuxt',
+    '@nuxt/image'
   ],
   icon: {
     componentName: 'NuxtIcon'

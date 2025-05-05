@@ -1,5 +1,5 @@
 <template>
-  <div class="pb-20">
+  <div class="pb-20 ">
     <!-- User Profile Section -->
     <NuxtLink to="/location-selection" class="sticky top-0 z-10">
       <div class="p-4 flex items-center bg-white shadow-sm rounded-lg mb-2">
@@ -10,7 +10,7 @@
         </div>
         <div class="flex-1 bg-white">
           <h3 class="text-xs text-gray-500">Alamat</h3>
-          <p class="text-sm text-orange-500  line-clamp-1">
+          <p class="text-sm text-orange-500 line-clamp-1">
             {{ currentLocation.address }}
           </p>
         </div>
@@ -30,11 +30,20 @@
       </div>
     </div>
 
-    <!-- Search Bar -->
-    <div class="px-4 py-2">
-      <SearchBar v-model="searchQuery" placeholder="Cari lokasi terdekat" />
-    </div>
+    <div class="px-4 py-6 max-w-md mx-auto">
+      <!-- Judul -->
+      <h2 class="text-[16px] font-bold text-gray-900 mb-1">
+        Temukan kursi roda terdekatmu!
+      </h2>
+      <p class="text-[#FF5F00] font-[12px] mb-1">Jelajahi sekarang →</p>
+      <p class="text-[12px] text-gray-500 mb-5">
+        Atau pilih tanggal dan waktu yang sesuai untuk memastikan ketersediaan
+        kursi roda
+      </p>
 
+      <!-- Card Pilihan Per Hari / Per Jam -->
+      <CardChooseTime></CardChooseTime>
+    </div>
     <!-- Voucher Section -->
     <div class="px-4 py-2">
       <img src="/public/package-1.webp" alt="" />
@@ -61,7 +70,7 @@
           </div>
         </div>
       </div>
-
+      
       <!-- Actual package content -->
       <div v-else>
         <PackageCard
@@ -73,44 +82,6 @@
       </div>
     </div>
 
-    <!-- Agents Section -->
-    <div class="px-4 py-2">
-      <h2 class="font-medium mb-2">Agen Kami</h2>
-
-      <!-- Skeleton loading for agents -->
-      <div
-        v-if="loadingAgents"
-        class="bg-white rounded-lg overflow-hidden space-y-3"
-      >
-        <div
-          v-for="i in 3"
-          :key="`agent-skeleton-${i}`"
-          class="p-4 last:border-b-0"
-        >
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <Skeleton height="48px" width="48px" class="rounded-full" />
-              <div class="space-y-2">
-                <Skeleton height="18px" width="120px" />
-                <Skeleton height="14px" width="160px" />
-              </div>
-            </div>
-            <Skeleton height="32px" width="80px" class="rounded" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Actual agent content -->
-      <div v-else class="bg-white rounded-lg overflow-hidden shadow-sm">
-        <AgentCard
-          v-for="agent in agents"
-          :key="agent.id"
-          :agent="agent"
-          showActionButton
-          @action="viewAgent"
-        />
-      </div>
-    </div>
     <!-- Bottom Navigation -->
     <BottomNavigation />
   </div>
@@ -149,9 +120,7 @@ const transactionStore = useTransactionStore();
 const loadingLocation = ref(true);
 const loadingUser = ref(true);
 const loadingPackages = ref(true);
-const loadingAgents = ref(true);
 const packagesError = ref(false);
-const agentsError = ref(false);
 
 const searchQuery = ref("");
 
@@ -169,6 +138,13 @@ const currentLocation = ref<Location>({
   name: "",
   address: "",
 });
+
+const tanggalSewa = ref("");
+const tanggalKembali = ref("");
+
+function cariKursiRoda() {
+  alert(`Mencari dari ${tanggalSewa.value} hingga ${tanggalKembali.value}`);
+}
 
 // Update onMounted to include location handling
 onMounted(async () => {
@@ -213,7 +189,6 @@ onMounted(async () => {
         }, 800)
       ),
       loadPackages(),
-      loadAgents(),
     ]);
   } catch (error) {
     console.error("Error loading initial data:", error);
@@ -235,7 +210,6 @@ const getStoredLocation = (): StoredLocation | null => {
 };
 
 const packages = ref<Package[]>([]);
-const agents = ref<Agent[]>([]);
 
 const loadPackages = async () => {
   try {
@@ -269,40 +243,6 @@ const loadPackages = async () => {
   }
 };
 
-const loadAgents = async () => {
-  try {
-    loadingAgents.value = true;
-    agentsError.value = false;
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    agents.value = [
-      {
-        id: "1",
-        name: "Agen A",
-        address: "Jl. Ibrahim No. 12, Al-Haram, Makkah, Arab Saudi",
-        distance: 1.0,
-        distanceUnit: "km",
-        rating: 4.5,
-        isAvailable: true,
-      },
-      {
-        id: "2",
-        name: "Agen B",
-        address: "Jl. Ibrahim No. 15, Al-Haram, Makkah, Arab Saudi",
-        distance: 1.1,
-        distanceUnit: "km",
-        rating: 4.2,
-        isAvailable: true,
-      },
-    ];
-  } catch (error) {
-    agentsError.value = true;
-    console.error("Error loading agents:", error);
-  } finally {
-    loadingAgents.value = false;
-  }
-};
-
 onMounted(async () => {
   try {
     // Reset transaction store when landing on home page
@@ -323,7 +263,6 @@ onMounted(async () => {
         }, 1000)
       ),
       loadPackages(),
-      loadAgents(),
     ]);
   } catch (error) {
     console.error("Error loading initial data:", error);
@@ -343,22 +282,9 @@ const bookPackage = (pkg: Package) => {
     router.push("/search");
   }
 };
-
-const viewAgent = (agent: Agent) => {
-  console.log("Viewing agent:", agent);
-  // Store the selected agent in the transaction store
-  transactionStore.selectAgent(agent);
-  // If a package is already selected, go to transaction detail
-  if (transactionStore.isPackageBooking) {
-    router.push("/transaction-detail");
-  } else {
-    // If no package is selected, go to custom booking page
-    router.push("/custom-booking");
-  }
-};
 </script>
 
-<style>
+<style scoped>
 @keyframes pulse {
   0%,
   100% {
