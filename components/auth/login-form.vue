@@ -1,145 +1,60 @@
+<script setup lang="ts">
+import { useLoginStore } from '@/store/login'
+
+const login = useLoginStore()
+
+const handleKeyEnter = (e: KeyboardEvent) => {
+  if (e.key === 'Enter') {
+    login.sendOtpAndNavigate('/auth/verify-otp')
+  }
+}
+</script>
+
 <template>
   <div class="flex flex-col items-center w-full max-w-md mx-auto px-4">
     <h1 class="text-3xl font-bold mb-8">MASUK</h1>
 
     <div class="w-full space-y-6">
       <div class="space-y-1 p-4 border border-gray-100 rounded-md overflow-hidden">
-        <label for="phone" class="text-sm text-orange-500">Masukkan No. Whatsapp atau Alamat Email Aktif</label>
+        <label class="text-sm text-orange-500">Masukkan No. Whatsapp atau Alamat Email Aktif</label>
         <div class="flex border border-gray-100 rounded-md overflow-hidden">
           <input
-            v-model="phoneNumber"
+            v-model="login.phoneNumber"
             type="text"
             placeholder="Nomor WhatsApp/Email"
             class="flex-1 px-3 py-2 border-none focus:outline-none focus:ring-0"
-            :class="{'border-red-500 ': phoneError}"
-            @keyup.enter="handleLogin"
+            :class="{ 'border-red-500 ': login.phoneError }"
+            @keyup="handleKeyEnter"
           />
         </div>
-        <p v-if="phoneError" class="text-[12px] text-red-500">{{ phoneError }}</p>
+        <p v-if="login.phoneError" class="text-[12px] text-red-500">{{ login.phoneError }}</p>
       </div>
 
       <div class="flex items-start space-x-2">
-        <input
-          v-model="agreeToTerms"
-          type="checkbox"
-          id="terms"
-          class="mt-1 h-4 w-4 orange-500 focus:ring-orange-500 border-gray-300 rounded"
-        />
+        <input v-model="login.agreeToTerms" type="checkbox" id="terms"
+          class="mt-1 h-4 w-4 text-orange-500 focus:ring-orange-500 border-gray-300 rounded" />
         <label for="terms" class="text-xs text-gray-600">
           Saya menyetujui syarat & ketentuan serta kebijakan yang berlaku
         </label>
       </div>
 
-      <button
-        @click="handleLogin"
-        :disabled="!isFormValid || isLoading"
+      <button @click="login.sendOtpAndNavigate('/auth/verify-otp')" :disabled="!login.isFormValid || login.isLoading"
         class="w-full py-3 bg-orange-500 text-white rounded-md font-medium transition-colors"
-        :class="{
-          'opacity-70 cursor-not-allowed': !isFormValid || isLoading,
-          'hover:bg-orange-600': isFormValid && !isLoading,
-        }"
-      >
-        <span v-if="isLoading">Memproses...</span>
+        :class="{ 'opacity-70 cursor-not-allowed': !login.isFormValid || login.isLoading }">
+        <span v-if="login.isLoading">Memproses...</span>
         <span v-else>Masuk</span>
       </button>
 
-      <p v-if="apiError" class="text-red-500 text-sm text-center">
-        {{ apiError }}
+      <p v-if="login.apiError" class="text-red-500 text-sm text-center">
+        {{ login.apiError }}
       </p>
 
       <div class="text-center">
         <p class="text-sm">
           Belum punya akun?
-          <NuxtLink to="/auth/register" class="text-orange-500 font-medium"
-            >Daftar</NuxtLink
-          >
+          <NuxtLink to="/auth/register" class="text-orange-500 font-medium">Daftar</NuxtLink>
         </p>
       </div>
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
-
-import { useFetchApi, useAuth } from "@/composables/users/use-auth"; // Import the fetch function directly
-
-const router = useRouter();
-const { login } = useAuth();
-const { fetchApi, isLoading: fetchLoading, error: fetchError } = useFetchApi();
-
-const phoneNumber = ref("");
-const phoneError = ref("");
-const agreeToTerms = ref(false);
-const apiError = ref<string | null>(null);
-const isLoading = ref(false);
-
-// Validate phone number format (Indonesian numbers without +62)
-const validatePhoneNumber = (phone: string): boolean => {
-  const cleaned = phone.replace(/\D/g, "");
-  return cleaned.length >= 10 && cleaned.length <= 14;
-};
-
-const isFormValid = computed(() => {
-  return validatePhoneNumber(phoneNumber.value) && agreeToTerms.value;
-});
-
-const validateForm = (): boolean => {
-  phoneError.value = "";
-
-  if (!phoneNumber.value) {
-    phoneError.value = "Nomor WhatsApp harus diisi";
-    return false;
-  }
-
-  if (!validatePhoneNumber(phoneNumber.value)) {
-    phoneError.value = "Format yang anda masukan salah";
-    return false;
-  }
-
-  if (!agreeToTerms.value) {
-    apiError.value = "Anda harus menyetujui syarat dan ketentuan";
-    return false;
-  }
-
-  return true;
-};
-
-const handleLogin = async () => {
-  if (!validateForm()) return;
-
-  isLoading.value = true;
-  apiError.value = null;
-
-  try {
-    // Format phone number to +62XXXXXXXXXX
-    const formattedPhone = `+62${phoneNumber.value.replace(/\D/g, "").replace(/^0+/, "")}`;
-
-    // Call the API to request OTP
-    const response = await fetchApi("/auth/request-otp", {
-      method: "POST",
-      body: {
-        phoneNumber: formattedPhone,
-      },
-    });
-
-    // If successful, store the session ID and redirect to OTP verification
-    if (response?.sessionId) {
-      // You might want to store the session ID in a cookie or local storage
-      router.push({
-        path: "/auth/verify-otp",
-        query: { phone: formattedPhone },
-      });
-    }
-  } catch (error: any) {
-    console.error("Login error:", error);
-    apiError.value = error.message || "Terjadi kesalahan saat memproses login";
-    if (error.response?.data?.message) {
-      apiError.value = error.response.data.message;
-    }
-  } finally {
-    isLoading.value = false;
-  }
-};
-</script>

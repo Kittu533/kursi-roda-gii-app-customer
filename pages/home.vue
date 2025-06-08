@@ -4,8 +4,7 @@
     <NuxtLink to="/location-selection" class="sticky top-0 z-10">
       <div class="p-4 flex items-center bg-white shadow-sm rounded-lg mb-2">
         <div
-          class="bg-white border border-[#FF9732] rounded-full h-[36px] w-[36px] flex items-center justify-center mr-3"
-        >
+          class="bg-white border border-[#FF9732] rounded-full h-[36px] w-[36px] flex items-center justify-center mr-3">
           <NuxtIcon name="mdi:map-marker" class="text-orange-500 h-5 w-5" />
         </div>
         <div class="flex-1 bg-white">
@@ -19,13 +18,10 @@
 
     <!-- User Greeting -->
     <div class="px-4 py-2 flex items-center">
-      <img
-        :src="user.avatarUrl"
-        alt="User"
-        class="w-10 h-10 rounded-full mr-3"
-      />
+      <img :src="user.avatarUrl" alt="User" class="w-10 h-10 rounded-full mr-3" />
       <div>
-        <h2 class="font-medium">Hello, {{ user.name }}!</h2>
+        <h2 class="font-medium">Hello, {{ user.name || 'Pengguna' }}!</h2>
+
         <p class="text-xs text-gray-500">{{ user.status }}</p>
       </div>
     </div>
@@ -55,11 +51,7 @@
 
       <!-- Skeleton loading for packages -->
       <div v-if="loadingPackages" class="space-y-3">
-        <div
-          v-for="i in 3"
-          :key="`package-skeleton-${i}`"
-          class="p-4 rounded-lg"
-        >
+        <div v-for="i in 3" :key="`package-skeleton-${i}`" class="p-4 rounded-lg">
           <div class="flex items-center gap-3">
             <Skeleton height="80px" width="80px" class="rounded" />
             <div class="flex-1 space-y-2">
@@ -70,15 +62,10 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Actual package content -->
       <div v-else>
-        <PackageCard
-          v-for="pkg in packages"
-          :key="pkg.id"
-          :packageItem="pkg"
-          @book="bookPackage"
-        />
+        <PackageCard v-for="pkg in packages" :key="pkg.id" :packageItem="pkg" @book="bookPackage" />
       </div>
     </div>
 
@@ -97,11 +84,18 @@ import PackageCard from "~/components/user/package-card.vue";
 import AgentCard from "~/components/user/agent-card.vue";
 import BottomNavigation from "~/components/user/bottom-navigation.vue";
 import Skeleton from "~/components/ui/skeleton.vue";
+import { useUserStore } from '@/store/user'
+
+const userStore = useUserStore()
+
+definePageMeta({
+  middleware: ['customer-auth']
+})
 
 // Add these interfaces at the top of the script section
 interface Coordinates {
-  lat: number;
-  lng: number;
+  latitude: number;
+  longitude: number;
 }
 
 interface StoredLocation {
@@ -125,12 +119,27 @@ const packagesError = ref(false);
 const searchQuery = ref("");
 
 // Mock data
-const user = ref<User>({
-  id: "1",
-  name: "Cahya",
-  avatarUrl: "/avatar.webp",
-  status: "Selamat kali nada sesuai kebutuhanmu!",
-});
+const user = computed(() => ({
+  name: userStore.user?.full_name || 'User',
+  avatarUrl: '/avatar.webp',
+  status: 'Selamat datang kembali!'
+}))
+
+
+const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+    if (!res.ok) {
+      throw new Error('Failed to reverse geocode');
+    }
+    const data = await res.json()
+    return data.display_name || 'Tidak ditemukan'
+  } catch (e) {
+    console.error('Reverse geocode failed:', e)
+    return 'Alamat tidak ditemukan'
+  }
+}
+
 
 // Modify the currentLocation initialization
 const currentLocation = ref<Location>({
@@ -149,51 +158,57 @@ function cariKursiRoda() {
 // Update onMounted to include location handling
 onMounted(async () => {
   try {
-    // Get location from query params or localStorage
     const queryLocation = route.query;
     const storedLocation = getStoredLocation();
 
     if (queryLocation.locationId) {
-      // Use location from query parameters
+      const lat = parseFloat(queryLocation.lat as string)
+      const lng = parseFloat(queryLocation.lng as string)
+      const address = await reverseGeocode(lat, lng)
+      currentLocation.value.address = address
+
+
       currentLocation.value = {
         id: queryLocation.locationId as string,
         name: queryLocation.locationName as string,
-        address: queryLocation.address as string,
-      };
+        address
+      }
+
     } else if (storedLocation) {
-      // If no query params, use stored location and update route
+      const lat = storedLocation.coordinates.latitude
+      const lng = storedLocation.coordinates.longitude
+      const address = await reverseGeocode(lat, lng)
+
       router.push({
         name: "home",
         query: {
           locationId: storedLocation.id,
           locationName: storedLocation.name,
-          lat: storedLocation.coordinates.lat.toString(),
-          lng: storedLocation.coordinates.lng.toString(),
-          address: storedLocation.address,
+          lat: lat.toString(),
+          lng: lng.toString(),
+          address
         },
-      });
+      })
 
       currentLocation.value = {
         id: storedLocation.id,
         name: storedLocation.name,
-        address: storedLocation.address,
-      };
+        address
+      }
     }
 
-    // ...rest of your existing onMounted code...
     await Promise.all([
-      new Promise((resolve) =>
-        setTimeout(() => {
-          loadingLocation.value = false;
-          resolve(true);
-        }, 800)
-      ),
-      loadPackages(),
-    ]);
+      new Promise(resolve => setTimeout(() => {
+        loadingLocation.value = false
+        resolve(true)
+      }, 800)),
+      loadPackages()
+    ])
   } catch (error) {
-    console.error("Error loading initial data:", error);
+    console.error("Error loading initial data:", error)
   }
-});
+})
+
 // Add function to get location from localStorage
 const getStoredLocation = (): StoredLocation | null => {
   try {
@@ -286,10 +301,12 @@ const bookPackage = (pkg: Package) => {
 
 <style scoped>
 @keyframes pulse {
+
   0%,
   100% {
     opacity: 0.6;
   }
+
   50% {
     opacity: 1;
   }

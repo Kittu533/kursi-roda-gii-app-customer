@@ -2,6 +2,14 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
+  runtimeConfig: {
+    public: {
+      coreServiceBaseUrl: process.env.NUXT_PUBLIC_CORE_SERVICE_BASE_URL,
+      masterdataServiceBaseUrl: process.env.NUXT_PUBLIC_MASTERDATA_SERVICE_BASE_URL,
+      authenticationServiceBaseUrl: process.env.NUXT_PUBLIC_AUTHENTICATION_SERVICE_BASE_URL,
+      logServiceBaseUrl: process.env.NUXT_PUBLIC_LOG_SERVICE_BASE_URL
+    }
+  },
   app: {
     pageTransition: {
       name: 'page',
@@ -15,6 +23,10 @@ export default defineNuxtConfig({
           integrity: 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=',
           crossorigin: ''
         },
+        {
+          rel: 'stylesheet',
+          href: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css'
+        }
       ],
       script: [
         {

@@ -45,7 +45,7 @@
       <!-- Product Info -->
       <div class="mb-6">
         <div class="flex justify-between items-center mb-3">
-          <h2 class="text-lg font-medium">{{ transaction.productName }}</h2>
+          <h2 class="text-[12px] font-medium">{{ transaction.productName }}</h2>
           <p class="text-[12px] bg-orange-100 p-[3px]  rounded-[10px] text-orange-500">Sedang Di proses</p>
         </div>
         <div class="flex justify-between mt-2">
