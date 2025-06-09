@@ -75,31 +75,50 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 
-const activeTab = ref('perhari')
+type PerHariPayload = { mode: 'perhari', tanggalSewa: string, tanggalKembali: string }
+type PerJamPayload = { mode: 'perjam', tanggal: string, jamSewa: string, jamKembali: string }
+type SearchPayload = PerHariPayload | PerJamPayload
 
+const emit = defineEmits < {
+  (e: 'search', payload: SearchPayload): void
+}> ()
+
+const activeTab = ref < 'perhari' | 'perjam' > ('perhari')
 const tanggalSewa = ref('')
 const tanggalKembali = ref('')
-
 const tanggalJam = ref('')
 const jamSewa = ref('')
 const jamKembali = ref('')
 
 function cari() {
+  console.log('Function cari() clicked')
   if (activeTab.value === 'perhari') {
+    console.log('Mode: perhari', { tanggalSewa: tanggalSewa.value, tanggalKembali: tanggalKembali.value })
     if (!tanggalSewa.value || !tanggalKembali.value) {
       alert('Mohon lengkapi tanggal sewa dan tanggal kembali.')
       return
     }
-    alert(`Perhari:\nDari ${tanggalSewa.value} hingga ${tanggalKembali.value}`)
+    emit('search', {
+      mode: 'perhari',
+      tanggalSewa: tanggalSewa.value,
+      tanggalKembali: tanggalKembali.value
+    })
   } else {
+    console.log('Mode: perjam', { tanggal: tanggalJam.value, jamSewa: jamSewa.value, jamKembali: jamKembali.value })
     if (!tanggalJam.value || !jamSewa.value || !jamKembali.value) {
       alert('Mohon lengkapi tanggal dan jam sewa serta jam kembali.')
       return
     }
-    alert(`Perjam:\nTanggal ${tanggalJam.value}\nDari ${jamSewa.value} sampai ${jamKembali.value}`)
+    emit('search', {
+      mode: 'perjam',
+      tanggal: tanggalJam.value,
+      jamSewa: jamSewa.value,
+      jamKembali: jamKembali.value
+    })
   }
+  console.log('Search event emitted')
 }
 </script>
