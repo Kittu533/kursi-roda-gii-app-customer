@@ -38,7 +38,7 @@
       </p>
 
       <!-- Card Pilihan Per Hari / Per Jam -->
-      <CardChooseTime></CardChooseTime>
+      <CardChooseTime @search="handleCariWheelchair"></CardChooseTime>
     </div>
     <!-- Voucher Section -->
     <div class="px-4 py-2">
@@ -64,74 +64,78 @@
       </div>
 
       <!-- Actual package content -->
+      <div v-else-if="packagesError" class="text-red-500">Gagal memuat paket.</div>
       <div v-else>
-        <PackageCard v-for="pkg in packages" :key="pkg.id" :packageItem="pkg" @book="bookPackage" />
+        <PackageCard v-for="pkg in mappedPackages" :key="pkg.id" :packageItem="pkg" @book="bookPackage" />
+
+        <div v-if="packages.length === 0" class="text-gray-400">Tidak ada paket tersedia.</div>
       </div>
     </div>
-
     <!-- Bottom Navigation -->
     <BottomNavigation />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { ref, onMounted, computed } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import type { User, Location, Agent, Package } from "~/types";
 import { useTransactionStore } from "~/store/transaction";
-import SearchBar from "~/components/user/search-bar.vue";
 import PackageCard from "~/components/user/package-card.vue";
-import AgentCard from "~/components/user/agent-card.vue";
 import BottomNavigation from "~/components/user/bottom-navigation.vue";
 import Skeleton from "~/components/ui/skeleton.vue";
 import { useUserStore } from '@/store/user'
+import { usePackageStore } from '~/store/packages'
+import CardChooseTime from '~/components/card-choose-time.vue'
+import type { WheelchairItem } from '~/types/wheelchairs'
+import { useWheelchairStore } from '~/store/wheelchairs'
+
+
 
 const userStore = useUserStore()
-
-definePageMeta({
-  middleware: ['customer-auth']
-})
-
-// Add these interfaces at the top of the script section
-interface Coordinates {
-  latitude: number;
-  longitude: number;
-}
-
-interface StoredLocation {
-  id: string;
-  name: string;
-  address: string;
-  coordinates: Coordinates;
-  lastUsed: number;
-  timestamp: number;
-}
-
 const route = useRoute();
 const router = useRouter();
 const transactionStore = useTransactionStore();
+const packageStore = usePackageStore();
+const packages = computed(() => packageStore.packages);
 
+// Loading & error state
 const loadingLocation = ref(true);
 const loadingUser = ref(true);
 const loadingPackages = ref(true);
 const packagesError = ref(false);
 
-const searchQuery = ref("");
-
-// Mock data
+// User mock
 const user = computed(() => ({
   name: userStore.user?.full_name || 'User',
   avatarUrl: '/avatar.webp',
   status: 'Selamat datang kembali!'
-}))
+}));
 
-
+// Location logic (sama seperti sebelumnya)
+interface Coordinates { latitude: number; longitude: number; }
+interface StoredLocation {
+  id: string; name: string; address: string; coordinates: Coordinates;
+  lastUsed: number; timestamp: number;
+}
+const currentLocation = ref<Location>({ id: "", name: "", address: "" });
+const tanggalSewa = ref(""); const tanggalKembali = ref("");
+const searchQuery = ref("");
+const getStoredLocation = (): StoredLocation | null => {
+  try {
+    const recentLocations = localStorage.getItem("recentLocations");
+    if (!recentLocations) return null;
+    const locations: StoredLocation[] = JSON.parse(recentLocations);
+    return locations.sort((a, b) => b.lastUsed - a.lastUsed)[0];
+  } catch (error) {
+    console.error("Error getting stored location:", error);
+    return null;
+  }
+};
 const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
   try {
     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-    if (!res.ok) {
-      throw new Error('Failed to reverse geocode');
-    }
+    if (!res.ok) throw new Error('Failed to reverse geocode');
     const data = await res.json()
     return data.display_name || 'Tidak ditemukan'
   } catch (e) {
@@ -141,167 +145,133 @@ const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
 }
 
 
-// Modify the currentLocation initialization
-const currentLocation = ref<Location>({
-  id: "",
-  name: "",
-  address: "",
-});
-
-const tanggalSewa = ref("");
-const tanggalKembali = ref("");
-
-function cariKursiRoda() {
-  alert(`Mencari dari ${tanggalSewa.value} hingga ${tanggalKembali.value}`);
-}
-
-// Update onMounted to include location handling
-onMounted(async () => {
-  try {
-    const queryLocation = route.query;
-    const storedLocation = getStoredLocation();
-
-    if (queryLocation.locationId) {
-      const lat = parseFloat(queryLocation.lat as string)
-      const lng = parseFloat(queryLocation.lng as string)
-      const address = await reverseGeocode(lat, lng)
-      currentLocation.value.address = address
+const mappedPackages = computed(() =>
+  packages.value.map(pkg => ({
+    id: pkg.id,
+    name: pkg.name,
+    imageUrl: pkg.picture, // mapping picture -> imageUrl
+    originalPrice: pkg.price, // price dari backend (string), bisa pakai dua-duanya kalau ada diskon
+    discountedPrice: pkg.price,
+    timeRange: '', // kosong kalau backend tidak ada info waktu, atau isi sesuai kebutuhan
+  }))
+)
 
 
-      currentLocation.value = {
-        id: queryLocation.locationId as string,
-        name: queryLocation.locationName as string,
-        address
+//  Search Payload Type
+function handleCariWheelchair(payload: { mode: string, tanggalSewa?: string, tanggalKembali?: string, tanggal?: string, jamSewa?: string, jamKembali?: string }) {
+  // --- Untuk pencarian perhari ---
+  if (payload.mode === 'perhari') {
+    router.push({
+      path: '/product',
+      query: {
+        startDate: payload.tanggalSewa,
+        endDate: payload.tanggalKembali
       }
-
-    } else if (storedLocation) {
-      const lat = storedLocation.coordinates.latitude
-      const lng = storedLocation.coordinates.longitude
-      const address = await reverseGeocode(lat, lng)
-
-      router.push({
-        name: "home",
-        query: {
-          locationId: storedLocation.id,
-          locationName: storedLocation.name,
-          lat: lat.toString(),
-          lng: lng.toString(),
-          address
-        },
-      })
-
-      currentLocation.value = {
-        id: storedLocation.id,
-        name: storedLocation.name,
-        address
+    })
+  } else if (payload.mode === 'perjam') {
+    // --- Untuk pencarian perjam, jika ingin dikirim ---
+    router.push({
+      path: '/product',
+      query: {
+        date: payload.tanggal,
+        startTime: payload.jamSewa,
+        endTime: payload.jamKembali
       }
-    }
-
-    await Promise.all([
-      new Promise(resolve => setTimeout(() => {
-        loadingLocation.value = false
-        resolve(true)
-      }, 800)),
-      loadPackages()
-    ])
-  } catch (error) {
-    console.error("Error loading initial data:", error)
+    })
   }
-})
-
-// Add function to get location from localStorage
-const getStoredLocation = (): StoredLocation | null => {
-  try {
-    const recentLocations = localStorage.getItem("recentLocations");
-    if (!recentLocations) return null;
-
-    const locations: StoredLocation[] = JSON.parse(recentLocations);
-    // Get most recent location by lastUsed timestamp
-    return locations.sort((a, b) => b.lastUsed - a.lastUsed)[0];
-  } catch (error) {
-    console.error("Error getting stored location:", error);
-    return null;
-  }
-};
-
-const packages = ref<Package[]>([]);
-
-const loadPackages = async () => {
-  try {
+  // Load Packages function
+  const loadPackages = async () => {
     loadingPackages.value = true;
     packagesError.value = false;
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    packages.value = [
-      {
-        id: "1",
-        name: "Paket Tawaf",
-        timeRange: "Waktu: 20.00 - 21.00",
-        originalPrice: 300000,
-        discountedPrice: 150000,
-        imageUrl: "/voucher-1.webp",
-      },
-      {
-        id: "2",
-        name: "Paket S+1",
-        timeRange: "Waktu: 20.00 - 21.00",
-        originalPrice: 300000,
-        discountedPrice: 150000,
-        imageUrl: "/voucher-1.webp",
-      },
-    ];
-  } catch (error) {
-    packagesError.value = true;
-    console.error("Error loading packages:", error);
-  } finally {
-    loadingPackages.value = false;
-  }
-};
+    try {
+      await packageStore.loadPackages();
+    } catch (e) {
+      packagesError.value = true;
+    } finally {
+      loadingPackages.value = false;
+    }
+  };
 
-onMounted(async () => {
-  try {
-    // Reset transaction store when landing on home page
-    transactionStore.resetTransaction();
+  onMounted(async () => {
+    try {
+      const queryLocation = route.query;
+      const storedLocation = getStoredLocation();
 
-    // Simulate loading all data
-    await Promise.all([
-      new Promise((resolve) =>
-        setTimeout(() => {
-          loadingLocation.value = false;
-          resolve(true);
-        }, 800)
-      ),
-      new Promise((resolve) =>
-        setTimeout(() => {
-          loadingUser.value = false;
-          resolve(true);
-        }, 1000)
-      ),
-      loadPackages(),
-    ]);
-  } catch (error) {
-    console.error("Error loading initial data:", error);
-  }
-});
+      if (queryLocation.locationId) {
+        const lat = parseFloat(queryLocation.lat as string)
+        const lng = parseFloat(queryLocation.lng as string)
+        const address = await reverseGeocode(lat, lng)
+        currentLocation.value.address = address
+        currentLocation.value = {
+          id: queryLocation.locationId as string,
+          name: queryLocation.locationName as string,
+          address
+        }
+      } else if (storedLocation) {
+        const lat = storedLocation.coordinates.latitude
+        const lng = storedLocation.coordinates.longitude
+        const address = await reverseGeocode(lat, lng)
+        router.push({
+          name: "home",
+          query: {
+            locationId: storedLocation.id,
+            locationName: storedLocation.name,
+            lat: lat.toString(),
+            lng: lng.toString(),
+            address
+          },
+        })
+        currentLocation.value = {
+          id: storedLocation.id,
+          name: storedLocation.name,
+          address
+        }
+      }
 
-// Methods
-const bookPackage = (pkg: Package) => {
-  console.log("Booking package:", pkg);
-  // Store the selected package in the transaction store
-  transactionStore.selectPackage(pkg);
-  // Navigate to the agent selection page if no agent is selected yet
-  if (!transactionStore.hasSelectedAgent) {
+      await Promise.all([
+        new Promise(resolve => setTimeout(() => { loadingLocation.value = false; resolve(true) }, 800)),
+        loadPackages()
+      ])
+    } catch (error) {
+      console.error("Error loading initial data:", error)
+    }
+  });
+
+  // Reset transaction and load packages/user on mount
+  onMounted(async () => {
+    try {
+      transactionStore.resetTransaction();
+      await Promise.all([
+        new Promise(resolve => setTimeout(() => { loadingLocation.value = false; resolve(true); }, 800)),
+        new Promise(resolve => setTimeout(() => { loadingUser.value = false; resolve(true); }, 1000)),
+        loadPackages(),
+      ]);
+    } catch (error) {
+      console.error("Error loading initial data:", error);
+    }
+  });
+
+  // Book package method
+  const bookPackage = (pkg: Package) => {
+    transactionStore.selectPackage(pkg);
     router.push("/search");
-  } else {
-    // If agent is already selected, go directly to transaction detail
-    router.push("/search");
-  }
-};
+  };
+  // Watch for route changes to update location
+  watch(() => route.query, async (newQuery) => {
+    const lat = parseFloat(newQuery.lat as string);
+    const lng = parseFloat(newQuery.lng as string);
+    const address = await reverseGeocode(lat, lng);
+    currentLocation.value = {
+      id: newQuery.locationId as string,
+      name: newQuery.locationName as string,
+      address
+    };
+  });
+}
 </script>
 
 <style scoped>
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 0.6;

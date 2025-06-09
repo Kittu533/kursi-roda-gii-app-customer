@@ -1,3 +1,4 @@
+// store/user.ts (sudah OK dari kamu, tambahkan field jika perlu)
 import { defineStore } from 'pinia'
 
 interface User {
@@ -7,6 +8,7 @@ interface User {
   phone: string
   timezone: string
   utcOffset: string
+  // gender, dll jika ada
 }
 
 export const useUserStore = defineStore('user', {

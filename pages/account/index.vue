@@ -15,12 +15,8 @@
     <!-- Menu Items with Skeleton Loading -->
     <div class="bg-white rounded-xl shadow-sm">
       <template v-if="!isLoading">
-        <div
-          v-for="(item, index) in menuItems"
-          :key="index"
-          class="flex items-center justify-between p-4  last:border-b-0 pulse-on-hover"
-          @click="navigateTo(item.route)"
-        >
+        <div v-for="(item, index) in menuItems" :key="index"
+          class="flex items-center justify-between p-4  last:border-b-0 pulse-on-hover" @click="navigateTo(item.route)">
           <div class="flex items-center gap-3">
             <div class="w-[40px] h-[40px] flex items-center justify-center text-gray-500 bg-gray-50 rounded-full">
               <NuxtIcon :name="item.icon" class="w-6 h-6 text-orange-500" />
@@ -34,11 +30,7 @@
         </div>
       </template>
       <template v-else>
-        <div 
-          v-for="i in 4" 
-          :key="i" 
-          class="flex items-center justify-between p-4"
-        >
+        <div v-for="i in 4" :key="i" class="flex items-center justify-between p-4">
           <div class="flex items-center gap-3">
             <Skeleton height="40px" width="40px" class="rounded-full" />
             <div>
@@ -50,81 +42,61 @@
         </div>
       </template>
     </div>
-    
+
     <!-- Bottom Navigation -->
     <BottomNavigation />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import BottomNavigation from "~/components/user/bottom-navigation.vue";
-import Skeleton from "~/components/ui/skeleton.vue";
+import { useUserStore } from '~/store/user'
+import { computed, onMounted, ref } from 'vue'
+import BottomNavigation from "~/components/user/bottom-navigation.vue"
+import Skeleton from "~/components/ui/skeleton.vue"
 
-interface MenuItem {
-  title: string;
-  description: string;
-  icon: string;
-  route: string;
-}
+const userStore = useUserStore()
+const isLoading = ref(true)
 
-const user = ref({
-  name: "Cahya",
-  email: "cahya@gmail.com",
-});
-
-const menuItems = ref<MenuItem[]>([
-  {
-    title: "Akun saya",
-    description: "Kelola informasi akun Anda",
-    icon: "material-symbols-light:person",
-    route: "/account/edit-account",
-  },
-  {
-    title: "FAQ",
-    description: "Lihat pertanyaan umum",
-    icon: "material-symbols-light:question-mark",
-    route: "/account/faq",
-  },
-  {
-    title: "Bantuan",
-    description: "Dapatkan panduan penggunaan",
-    icon: "material-symbols-light:help-center-outline-rounded",
-    route: "/account/help",
-  },
-  {
-    title: "Keluar",
-    description: "Akhiri sesi dan keluar dari akun Anda",
-    icon: "material-symbols-light:exit-to-app",
-    route: "/account/logout",
-  },
-]);
-
-const isLoading = ref(true);
-const router = useRouter();
-
-const navigateTo = async (route: string) => {
-  if (route === router.currentRoute.value.path) return;
-  
-  try {
-    await router.push(route);
-  } catch (error) {
-    console.error('Navigation error:', error);
-  }
-};
-
-// Simulate data loading
+// Skeleton loading simulasi
 onMounted(() => {
   setTimeout(() => {
-    isLoading.value = false;
-  }, 1000);
-});
+    isLoading.value = false
+  }, 1000)
+})
+
+// Data user ambil dari store, fallback jika null
+const user = computed(() => ({
+  name: userStore.user?.full_name || "-",
+  email: userStore.user?.email || "-",
+}))
+
+const menuItems = ref([
+  { title: "Akun saya", description: "Kelola informasi akun Anda", icon: "material-symbols-light:person", route: "/account/edit-account" },
+  { title: "FAQ", description: "Lihat pertanyaan umum", icon: "material-symbols-light:question-mark", route: "/account/faq" },
+  { title: "Bantuan", description: "Dapatkan panduan penggunaan", icon: "material-symbols-light:help-center-outline-rounded", route: "/account/help" },
+  { title: "Keluar", description: "Akhiri sesi dan keluar dari akun Anda", icon: "material-symbols-light:exit-to-app", route: "/account/logout" }
+])
+
+const router = useRouter()
+const navigateTo = async (route: string) => {
+  if (route === router.currentRoute.value.path) return
+  try { await router.push(route) } catch (e) { console.error(e) }
+}
 </script>
+
 
 <style scoped>
 @keyframes pulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
+  0% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.6;
+  }
 }
 </style>
